@@ -7,13 +7,13 @@
 	import StopCard from '../stopCard.svelte';
 
 	let store = useLocalStorage('buggy', []);
+	let lastID = useLocalStorage('lastID', new Date());
 	let idHidden = $state(true);
 	let showData = $state(false);
 	let confirmClear = $state(false);
 	let clipboardSubmitted = $state(false);
 	let clipboardError = $state(false);
 	let startTime = $state(new Date());
-	let lastID = $state(new Date());
 	let startBuggies = $state([]);
 	let startedBuggies = $derived(startBuggies.length.valueOf());
 	let startFollowRecorded = $state(false);
@@ -27,7 +27,7 @@
 	let chuteFollowRecorded = $state(false);
 	let chutedBuggies = $derived(chuteBuggies.length.valueOf());
 	let shouldID = $state(false);
-	let teams = ['Atlas', 'Spirit', 'Fringe', 'CIA', 'SDC', 'Apex'];
+	let teams = ['Spirit', 'Fringe', 'CIA', 'SDC', 'Atlas', 'Apex'];
 	let teamSelectOpen = $state(false);
 	let team = $state('Atlas');
 	let themes = [
@@ -54,7 +54,7 @@
 	onMount(() => {
 		const intervalId = setInterval(() => {
 			let currentTime = new Date();
-			if ((currentTime - lastID) / 60000 > 10) {
+			if ((currentTime - lastID.value) / 60000 > 10) {
 				shouldID = true;
 				idHidden = false;
 			}
@@ -78,7 +78,7 @@
 		pantherBuggies = [];
 		team = teams[(teams.indexOf(team) + 1) % teams.length];
 		startTime = new Date();
-		lastID = data.didID ? new Date() : lastID;
+		lastID.value = data.didID ? new Date() : lastID.value;
 		if (data.didID) {
 			shouldID = false;
 			idHidden = true;
@@ -122,9 +122,9 @@
 	}
 </script>
 
-<div class="container h-svh px-2 py-2">
+<div class="container h-svh w-auto px-2 py-2">
 	<div class="grid h-full grid-flow-col grid-rows-10 gap-0 text-2xl">
-		<div id="header-row" class="row-span-1 grid grid-flow-col grid-cols-3 grid-rows-4">
+		<div id="header-row" class="row-span-1 grid grid-flow-col grid-cols-3 grid-rows-4 gap-x-2">
 			<p class="col-span-1 col-start-2 row-span-2 row-start-1 text-center text-xl">
 				Start: {startTime.getHours().toString().padStart(2, '0')}:{startTime
 					.getMinutes()
@@ -135,14 +135,14 @@
 				class="col-span-1 col-start-2 row-span-2 row-start-3 text-center text-xl"
 				class:text-primary={shouldID}
 			>
-				Last ID: {lastID.getHours().toString().padStart(2, '0')}:{lastID
+				Last ID: {lastID.value.getHours().toString().padStart(2, '0')}:{lastID.value
 					.getMinutes()
 					.toString()
 					.padStart(2, '0')}
 			</p>
-			<div class="dropdown col-span-1 col-start-1 row-span-4 mb-72">
-				<div tabindex="0" role="button" class="btn h-full w-full">
-					Team: <span class="text-primary">{team}</span>
+			<div class="dropdown col-span-1 col-start-1 row-span-4 mb-72 h-full w-full">
+				<div tabindex="0" role="button" class="btn h-full w-full bg-base-300">
+					<span class="text-primary">{team}</span>
 					<svg
 						width="12px"
 						height="12px"
@@ -161,9 +161,10 @@
 								name="theme-dropdown"
 								class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
 								aria-label={currTeam}
-								onselect={() => {
-									team = 'currTeam;';
-									teamSelectOpen = 'false;';
+								onclick={() => {
+                  console.log("HERE");
+									team = currTeam;
+									teamSelectOpen = false;
 								}}
 								value={currTeam}
 							/>
@@ -172,8 +173,8 @@
 				</ul>
 			</div>
 
-			<div class="dropdown col-span-1 col-start-3 row-span-4 mb-72">
-				<div tabindex="0" role="button" class="btn h-full w-full">
+			<div class="dropdown col-span-1 col-start-3 row-span-4 mb-72 h-full w-full">
+				<div tabindex="0" role="button" class="btn h-full w-full bg-base-300">
 					Theme
 					<svg
 						width="12px"
