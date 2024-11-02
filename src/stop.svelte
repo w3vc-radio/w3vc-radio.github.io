@@ -8,7 +8,7 @@
 		followRecorded = $bindable(),
 		prevFollowRecorded,
 		name,
-		didID
+		didID = $bindable()
 	} = $props();
 	let buggyLength = $derived(buggies.length.valueOf());
 	let timeFormat = { hour: '2-digit' };
@@ -64,8 +64,8 @@
 </script>
 
 <div class="row-span-1 grid grid-flow-row grid-cols-12">
-	<div class="col-span-1 [writing-mode:vertical-lr]">
-		<p class="rotate-180 text-center">{name}</p>
+	<div class="col-span-1 [writing-mode:vertical-lr] [text-orientation:sideways]">
+		<p class="rotate-180 text-center touch-manipulation">{name}</p>
 	</div>
 	<div class="col-span-7 grid grid-flow-col grid-cols-2 grid-rows-3 gap-1 p-1">
 		{#each buggies as buggy (buggy.number)}
@@ -77,7 +77,7 @@
 		<div class="col-span-1 col-start-2 row-span-1 row-start-3">
 			<button
 				onclick={removeLastBuggy}
-				class="h-full max-h-full w-full max-w-full rounded-btn bg-neutral text-center text-accent transition ease-in-out active:scale-[0.9]"
+				class="h-full max-h-full w-full max-w-full rounded-btn bg-neutral text-center text-accent transition ease-in-out active:scale-[0.9] touch-manipulation"
 				>Undo</button
 			>
 		</div>

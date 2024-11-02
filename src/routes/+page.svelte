@@ -7,13 +7,17 @@
 	import StopCard from '../stopCard.svelte';
 
 	let store = useLocalStorage('buggy', []);
-	let lastID = useLocalStorage('lastID', new Date());
+	let info = useLocalStorage('info', {
+		lastID: new Date().toUTCString(),
+		startTime: new Date().toUTCString()
+	});
+	let lastID = $derived(new Date(info.value.lastID));
+	let startTime = $derived(new Date(info.value.startTime));
 	let idHidden = $state(true);
 	let showData = $state(false);
 	let confirmClear = $state(false);
 	let clipboardSubmitted = $state(false);
 	let clipboardError = $state(false);
-	let startTime = $state(new Date());
 	let startBuggies = $state([]);
 	let startedBuggies = $derived(startBuggies.length.valueOf());
 	let startFollowRecorded = $state(false);
@@ -54,7 +58,7 @@
 	onMount(() => {
 		const intervalId = setInterval(() => {
 			let currentTime = new Date();
-			if ((currentTime - lastID.value) / 60000 > 10) {
+			if ((currentTime - lastID) / 60000 > 10) {
 				shouldID = true;
 				idHidden = false;
 			}
@@ -77,12 +81,19 @@
 		chuteBuggies = [];
 		pantherBuggies = [];
 		team = teams[(teams.indexOf(team) + 1) % teams.length];
-		startTime = new Date();
-		lastID.value = data.didID ? new Date() : lastID.value;
+		let currInfo = $state.snapshot(info.value);
+		currInfo.startTime = new Date();
+		currInfo.lastID = data.didID ? new Date() : lastID;
 		if (data.didID) {
 			shouldID = false;
 			idHidden = true;
 		}
+
+		startID = false;
+		pantherID = false;
+		chuteID = false;
+
+		info.value = currInfo;
 		startFollowRecorded = false;
 		pantherFollowRecorded = false;
 		chuteFollowRecorded = false;
@@ -122,7 +133,7 @@
 	}
 </script>
 
-<div class="container h-svh w-auto px-2 py-2">
+<div class=" h-svh w-full px-2 py-2">
 	<div class="grid h-full grid-flow-col grid-rows-10 gap-0 text-2xl">
 		<div id="header-row" class="row-span-1 grid grid-flow-col grid-cols-3 grid-rows-4 gap-x-2">
 			<p class="col-span-1 col-start-2 row-span-2 row-start-1 text-center text-xl">
@@ -135,7 +146,7 @@
 				class="col-span-1 col-start-2 row-span-2 row-start-3 text-center text-xl"
 				class:text-primary={shouldID}
 			>
-				Last ID: {lastID.value.getHours().toString().padStart(2, '0')}:{lastID.value
+				Last ID: {lastID.getHours().toString().padStart(2, '0')}:{lastID
 					.getMinutes()
 					.toString()
 					.padStart(2, '0')}
@@ -162,7 +173,7 @@
 								class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
 								aria-label={currTeam}
 								onclick={() => {
-                  console.log("HERE");
+									console.log('HERE');
 									team = currTeam;
 									teamSelectOpen = false;
 								}}
@@ -246,7 +257,7 @@
 					{startTime}
 					bind:followRecorded={startFollowRecorded}
 					prevFollowRecorded={true}
-					didID={startID}
+					bind:didID={startID}
 				/>
 				<Stop
 					name={'Panther'}
@@ -256,7 +267,7 @@
 					{startTime}
 					bind:followRecorded={pantherFollowRecorded}
 					prevFollowRecorded={startFollowRecorded}
-					didID={pantherID}
+					bind:didID={pantherID}
 				/>
 				<Stop
 					name={'Chute'}
@@ -266,7 +277,7 @@
 					{startTime}
 					bind:followRecorded={chuteFollowRecorded}
 					prevFollowRecorded={pantherFollowRecorded}
-					didID={chuteID}
+					bind:didID={chuteID}
 				/>
 			{/if}
 		</div>
@@ -300,6 +311,7 @@
 						onclick={() => {
 							confirmClear = false;
 							store.value = null;
+							info.value = null;
 						}}
 						class="btn btn-error h-full text-xl">Are you sure?</button
 					>
