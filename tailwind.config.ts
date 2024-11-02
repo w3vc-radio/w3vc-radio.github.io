@@ -8,12 +8,12 @@ export default {
 
   plugins: [typography, forms, daisyui],
   daisyui: {
-    themes: ["bumblebee", "retro", "coffee", "sunset"]
+    themes: ["bumblebee", "cupcake", "retro", "garden", "lofi", "lemonade", "coffee", "sunset"]
   },
   theme: {
     fontFamily: {
       sans: ['Gabarito', 'sans'],
-      mono : ['Space Mono', 'sans-serif'],
+      mono : ['IBM Plex Mono', 'sans-serif'],
     }
   }
 } satisfies Config;
