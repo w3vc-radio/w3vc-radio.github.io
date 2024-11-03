@@ -33,7 +33,7 @@
 	let shouldID = $state(false);
 	let teams = ['Spirit', 'Fringe', 'CIA', 'SDC', 'Atlas', 'Apex'];
 	let teamSelectOpen = $state(false);
-	let team = $state('Atlas');
+	let team = $state('Spirit');
 	let themes = [
 		'default',
 		'bumblebee',
@@ -169,11 +169,10 @@
 						<li>
 							<input
 								type="radio"
-								name="theme-dropdown"
-								class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
+								name="team-dropdown"
+								class="btn btn-ghost btn-sm btn-block justify-start"
 								aria-label={currTeam}
 								onclick={() => {
-									console.log('HERE');
 									team = currTeam;
 									teamSelectOpen = false;
 								}}
