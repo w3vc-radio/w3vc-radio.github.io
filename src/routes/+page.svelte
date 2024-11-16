@@ -31,7 +31,7 @@
 	let chuteFollowRecorded = $state(false);
 	let chutedBuggies = $derived(chuteBuggies.length.valueOf());
 	let shouldID = $state(false);
-	let teams = ['CIA', 'SDC', 'Spirit', 'Signu', 'Fringe', 'Robo'];
+	let teams = ['CIA', 'SDC', 'Apex', 'Spirit', 'Pike', 'Atlas', 'Fringe'];
 	let teamSelectOpen = $state(false);
 	let team = $state('CIA');
 	let themes = [
@@ -82,8 +82,8 @@
 		pantherBuggies = [];
 		team = teams[(teams.indexOf(team) + 1) % teams.length];
 		let currInfo = $state.snapshot(info.value);
+		currInfo.lastID = data.didID ? currInfo.startTime : lastID;
 		currInfo.startTime = new Date();
-		currInfo.lastID = data.didID ? new Date() : lastID;
 		if (data.didID) {
 			shouldID = false;
 			idHidden = true;
