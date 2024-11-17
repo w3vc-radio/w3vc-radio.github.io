@@ -31,7 +31,7 @@
 	let chuteFollowRecorded = $state(false);
 	let chutedBuggies = $derived(chuteBuggies.length.valueOf());
 	let shouldID = $state(false);
-	let teams = ['CIA', 'SDC', 'Apex', 'Spirit', 'Pike', 'Atlas', 'Fringe'];
+	let teams = ['CIA', 'SDC', 'Spirit', 'Atlas', 'DG', 'Fringe'];
 	let teamSelectOpen = $state(false);
 	let team = $state('CIA');
 	let themes = [
