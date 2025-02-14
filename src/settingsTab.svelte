@@ -11,7 +11,8 @@
 		faIdCard,
 		faCross,
 		faXmark,
-		faPencil
+		faPencil,
+		faCircleXmark
 	} from '@fortawesome/free-solid-svg-icons';
 	let selectedTeams = $state(config.value.teams);
 	let teamOrder = $state(config.value.teams);
@@ -26,6 +27,7 @@
 	let editModal = $state();
 	let operatorForModal = $state();
 	let operatorIdxForModal = $state();
+	let errorMsg = $state('');
 
 	let allTeams = [
 		'AEPi',
@@ -132,10 +134,26 @@
 	}
 
 	function saveData() {
-		config.value.teams = teamOrder;
-		config.value.stations = stationOrder;
-		config.value.theme = selectedTheme;
-		config.value.handedness = flipHandedness;
+		let allStationsHavePrimaryOperator = true;
+		stationOrder.forEach((s) => {
+			let stationHasPrimaryOperator = false;
+			operators.forEach((o) => {
+				if (o.station == s && o.isPrimary) {
+					stationHasPrimaryOperator = true;
+				}
+			});
+			allStationsHavePrimaryOperator = allStationsHavePrimaryOperator && stationHasPrimaryOperator;
+		});
+		if (allStationsHavePrimaryOperator) {
+			config.value.teams = teamOrder;
+			config.value.stations = stationOrder;
+			config.value.operators = operators;
+			config.value.theme = selectedTheme;
+			config.value.handedness = flipHandedness;
+			errorMsg = '';
+		} else {
+			errorMsg = 'All stations need primary operator';
+		}
 	}
 </script>
 
@@ -144,6 +162,10 @@
 		<button onclick={() => saveData()} class="btn btn-primary btn-block mt-4 w-full text-xl"
 			>Save</button
 		>
+		<div class:hidden={errorMsg.length == 0} role="alert" class="alert alert-error mt-2 mb-1 py-1">
+			<Fa icon={faCircleXmark} />
+			<span class="text-lg">{errorMsg}</span>
+		</div>
 		<fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-full border p-4">
 			<legend class="fieldset-legend text-lg">Teams</legend>
 
@@ -236,6 +258,7 @@
 					{#each stationOrder as station}
 						<option id={station}>{station}</option>
 					{/each}
+					<option>Rover</option>
 				</select>
 				<label class="fieldset-label text-base">
 					Should be primary?
@@ -243,6 +266,7 @@
 						type="checkbox"
 						bind:checked={currentOperatorIsPrimary}
 						class="toggle toggle-xl bg-transparent! bg-none"
+						disabled={currentOperatorStation == 'Rover'}
 					/>
 				</label>
 
@@ -256,7 +280,7 @@
 							operators.push({
 								name: currentOperatorName,
 								callsign: currentOperatorCallsign,
-								lastId: '',
+								lastId: new Date().toUTCString(),
 								station: currentOperatorStation,
 								isPrimary: currentOperatorIsPrimary
 							});
@@ -277,10 +301,8 @@
 						<div class="card-body flex w-full flex-row items-baseline justify-between py-2">
 							<div class="flex h-full w-2/3 flex-col">
 								<div class="flex flex-row items-center justify-start gap-2">
-									<Fa icon={faUser} class="w-1/8" />
-									<span class="overflow-x-scroll text-lg {operator.isPrimary ? 'text-success' : ''}"
-										>{operator.name}</span
-									>
+									<Fa icon={faUser} class="w-1/8  {operator.isPrimary ? 'text-info' : ''}" />
+									<span class="overflow-x-scroll text-lg">{operator.name}</span>
 								</div>
 								<div class="flex flex-row items-center justify-start gap-2">
 									<Fa icon={faIdCard} class="w-1/8" />

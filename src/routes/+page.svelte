@@ -17,6 +17,7 @@
 		faUser,
 		faUserPen
 	} from '@fortawesome/free-solid-svg-icons';
+	import OperatorsTab from '../operatorsTab.svelte';
 
 	const [send, receive] = crossfade({});
 	let store = localStore('buggy', []);
@@ -41,15 +42,16 @@
 	let confirmClear = $state(false);
 	let clipboardSubmitted = $state(false);
 	let clipboardError = $state(false);
+	let exportSubmitted = $state(false);
+	let exportError = $state(false);
 	let activeRollInfo = $state(
 		config.value.stations.map((name) => {
 			return { name: name, buggies: [], followCarSeen: false };
 		})
 	);
 	let activeRollStopAndPauseNotes = $state([]);
-	let startID = $state(false);
-	let pantherID = $state(false);
-	let chuteID = $state(false);
+	$inspect(activeRollStopAndPauseNotes);
+	let stationsDidId = $state(config.value.stations.map(() => false));
 	let shouldID = $state(false);
 	let teams = $derived(config.value.teams);
 	let flipHandedness = $derived(config.value.handedness);
@@ -58,19 +60,20 @@
 	let stops = $state([]);
 	let teamSelectOpen = $state(false);
 	let team = $state(config.value.teams.length > 0 ? config.value.teams[0] : 'N/A');
-	let themes = [
-		'default',
-		'bumblebee',
-		'cupcake',
-		'retro',
-		'garden',
-		'lemonade',
-		'coffee',
-		'sunset'
-	];
 
 	let resetConfig = () => {
 		config.update();
+	};
+
+	let handlePrimaryOperatorIdUpates = (station) => {
+		return (newTime) => {
+			config.value.operators = config.value.operators.map((o) => {
+				if (o.station == station && o.isPrimary) {
+					o.lastId = newTime;
+				}
+				return o;
+			});
+		};
 	};
 
 	let startIDRound = () => {
@@ -83,7 +86,7 @@
 		const intervalId = setInterval(() => {
 			let currentTime = new Date();
 			if ((currentTime - nextIDRoundTime) / 60000 > 10) {
-				config.value.nextIDRoundTime = new Date(currentTime.getTime() + 10 * 60000).toUTCString();
+				shouldID = true;
 				idHidden = false;
 			}
 		}, 30000); // 60000 milliseconds = 1 minute
@@ -96,8 +99,15 @@
 			buggies: $state.snapshot(activeRollInfo),
 			team: $state.snapshot(team),
 			startTime: $state.snapshot(startTime),
-			notes: $state.snapshot(activeRollStopAndPauseNotes)
+			notes: $state.snapshot(activeRollStopAndPauseNotes),
+			didId: false
 		};
+
+		stationsDidId.forEach((t) => {
+			if (t) {
+				data.didId = true;
+			}
+		});
 
 		if (shouldSave) {
 			team = teams[(teams.indexOf(team) + 1) % teams.length];
@@ -109,6 +119,7 @@
 		activeRollInfo = config.value.stations.map((name) => {
 			return { name: name, buggies: [], followCarSeen: false };
 		});
+		stationsDidId = config.value.stations.map(() => false);
 	};
 
 	async function writeClipboard() {
@@ -216,7 +227,10 @@
 					.toString()
 					.padStart(2, '0')}
 			</p>
-			<p class="col-span-1 col-start-2 row-span-2 row-start-3 text-center text-lg">
+			<p
+				class="col-span-1 col-start-2 row-span-2 row-start-3 rounded-md py-0.5 text-center text-lg"
+				class:bg-primary={shouldID}
+			>
 				Next ID: {nextIDRoundTime.getHours().toString().padStart(2, '0')}:{nextIDRoundTime
 					.getMinutes()
 					.toString()
@@ -236,7 +250,9 @@
 		</div>
 		<div
 			id="content-row"
-			class="flex flex-col overflow-y-auto py-3 {currentTab == 0 ? 'row-span-10' : 'row-span-8'}"
+			class="flex flex-col overflow-y-auto py-3 {currentTab == 0 || currentTab == 3
+				? 'row-span-10'
+				: 'row-span-8'}"
 		>
 			{#if currentTab == 2}
 				<DataTab />
@@ -260,19 +276,25 @@
 								? activeRollInfo[i - 1].followCarSeen
 								: true
 							: false}
-						bind:didID={startID}
+						bind:didID={stationsDidId[i]}
+						operatorLastIdUpdateFunc={handlePrimaryOperatorIdUpates(config.value.stations[i])}
 						bind:this={stops[i]}
 						bind:undoList
 						idx={i}
+						bind:config
 					/>
 				{/each}
+			{:else if currentTab == 3}
+				<OperatorsTab {config} buggy={store} />
 			{:else}
 				<SettingsTab {config} bind:selectedTheme />
 			{/if}
 		</div>
 		<div
 			id="settings-row"
-			class="{currentTab == 0 ? 'hidden' : 'row-span-2'} grid grid-flow-col grid-cols-3 gap-x-3"
+			class="{currentTab == 0 || currentTab == 3
+				? 'hidden'
+				: 'row-span-2'} grid grid-flow-col grid-cols-3 gap-x-3"
 		>
 			{#if currentTab == 2}
 				<!-- content here -->
@@ -286,8 +308,8 @@
 				>
 				<button
 					onclick={writeClipboard}
-					class="btn {clipboardSubmitted
-						? clipboardError
+					class="btn {exportSubmitted
+						? exportError
 							? 'btn-error'
 							: 'btn-success'
 						: 'btn-primary'} h-full text-xl">Export Data</button
@@ -366,7 +388,7 @@
 								note.time
 							).toLocaleTimeString()}</label
 						>
-						<input type="text" class="input" value={note.info} />
+						<input type="text" class="input" bind:value={note.info} />
 					{/each}
 					<form method="dialog">
 						<button class="btn btn-secondary btn-block">Close</button>

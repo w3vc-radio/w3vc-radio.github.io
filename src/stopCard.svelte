@@ -1,22 +1,33 @@
 <script>
 	let { name, buggies } = $props();
+
+	let formatTime = (buggy, idx, buggies) => {
+		let startTime = new Date(buggies[0].time);
+		if (buggy.number == '1' || buggy.number == 'F') {
+			let diff = new Date(buggy.time) - startTime;
+			let seconds = (diff / 1000) % 60;
+			let minutes = (diff / 1000 - seconds) / 60;
+			return `@${minutes}:${String(Math.ceil(seconds)).padStart(2, '0')}`;
+		} else {
+			let prevBuggy = buggies[buggies.indexOf(buggy) - 1];
+			let diff = new Date(buggy.time) - new Date(prevBuggy.time);
+			let seconds = (diff / 1000) % 60;
+			let minutes = (diff / 1000 - seconds) / 60;
+			return `+${minutes}:${String(Math.floor(seconds)).padStart(2, '0')}`;
+		}
+	};
 </script>
 
-<div class="flex flex-row flex-wrap justify-between gap-2">
+<fieldset class="fieldset bg-base-100 border-base-300 rounded-box w-full border p-4">
+	<legend class="fieldset-legend text-lg">{name}</legend>
 	<div class="flex flex-row gap-2">
-		<span class="text-primary text-md">{name}:</span>
-		<div class="flex flex-row flex-wrap justify-start gap-1">
-			{#each buggies as buggy, idx}
-				<p class="whitespace-nowrap text-md">
-					<span class="mr-0 whitespace-nowrap"
-						>{buggy.number}&ndash;{buggy.time.getHours().toString().padStart(2, '0')}:{buggy.time
-							.getMinutes()
-							.toString()
-							.padStart(2, '0')}:{buggy.time.getSeconds().toString().padStart(2, '0')}
-					</span>{#if idx < buggies.length - 1}<span>,</span>{/if}
-				</p>
-				<!-- content here -->
-			{/each}
-		</div>
+		{#each buggies as buggy, idx}
+			<div
+				class="text-light bg-base-300 flex flex-initial flex-row justify-around space-x-1 rounded-sm px-1 shadow-xl"
+			>
+				<div class="my-auto text-xl">{buggy.number}</div>
+				<div class="my-auto font-mono text-xl">{formatTime(buggy, idx, buggies)}</div>
+			</div>
+		{/each}
 	</div>
-</div>
+</fieldset>

@@ -10,7 +10,9 @@
 		name,
 		undoList = $bindable(),
 		didID = $bindable(),
-		idx
+		operatorLastIdUpdateFunc,
+		idx,
+		config = $bindable()
 	} = $props();
 	let buggyLength = $derived(buggies.length.valueOf());
 	let timeFormat = { hour: '2-digit' };
@@ -64,12 +66,44 @@
 
 	let captureIDed = () => {
 		didID = !didID;
+		operatorLastIdUpdateFunc(new Date().toUTCString());
 	};
+	let stationStatusFunc = (station) => {
+		let primaryIdError = false;
+		let otherIdError = false;
+		let currTime = new Date();
+		config.value.operators.forEach((o) => {
+			if (o.station == station) {
+				let minsAgo = Math.max(Math.floor((currTime - new Date(o.lastId)) / 60000), 0);
+				if (o.isPrimary && minsAgo >= 12) {
+					primaryIdError = true;
+				} else if (minsAgo >= 12) {
+					otherIdError = true;
+				}
+			}
+		});
+		if (primaryIdError) {
+			return 'status-error';
+		}
+		if (otherIdError) {
+			return 'status-warning';
+		}
+		return 'status-success';
+	};
+	let stationStatus = $state(stationStatusFunc(name));
+	setTimeout(() => (stationStatus = stationStatusFunc(name)), 60000);
 </script>
 
 <div class="grid shrink-0 basis-1/3 grid-flow-row grid-cols-12 py-3">
 	<div class="col-span-1 [text-orientation:sideways] [writing-mode:vertical-lr]">
-		<p class="rotate-180 touch-manipulation text-center">{name}</p>
+		<div class="rotate-180 touch-manipulation text-center">
+			<div class="flex flex-row items-center justify-center gap-3">
+				<div class="inline-grid *:[grid-area:1/1]">
+					<div class="status {stationStatus}"></div>
+				</div>
+				<p>{name}</p>
+			</div>
+		</div>
 	</div>
 	<div
 		class="col-span-7 grid grid-flow-col grid-cols-2 grid-rows-3 gap-x-1 gap-y-1.5 overflow-hidden p-1"
