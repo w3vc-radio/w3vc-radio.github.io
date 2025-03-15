@@ -59,6 +59,8 @@
 	let undoBtnHeld = $state(false);
 	let stops = $state([]);
 	let teamSelectOpen = $state(false);
+	let canExport = $derived(config.value.exportPassword != '');
+
 	let team = $state(config.value.teams.length > 0 ? config.value.teams[0] : 'N/A');
 
 	let resetConfig = () => {
@@ -199,6 +201,72 @@
 	};
 
 	let stopBtnHandler = (btnHeld) => {};
+
+	let formatTime = (startTime, buggy, buggies) => {
+		if (buggy.number == '1' || buggy.number == 'F') {
+			let diff = new Date(buggy.time) - startTime;
+			let seconds = (diff / 1000) % 60;
+			let minutes = (diff / 1000 - seconds) / 60;
+			return `@${minutes}:${String(Math.ceil(seconds)).padStart(2, '0')}`;
+		} else {
+			let prevBuggy = buggies[buggies.indexOf(buggy) - 1];
+			let diff = new Date(buggy.time) - new Date(prevBuggy.time);
+			let seconds = (diff / 1000) % 60;
+			let minutes = (diff / 1000 - seconds) / 60;
+			return `+${minutes}:${String(Math.floor(seconds)).padStart(2, '0')}`;
+		}
+	};
+
+	let exportData = async () => {
+		let rows = [];
+
+		let configHeaderRow = [['Position', 'Call', 'Name']];
+		let configRows = configHeaderRow.concat(
+			config.value['operators'].map((operator) => [
+				operator.station + (operator.isPrimary ? ' (Primary)' : ''),
+				operator.callsign,
+				operator.name
+			])
+		);
+		let buggyDataHeaderRow = [['Buggy'].concat(config.value.stations)];
+		let emptyBuggyCols = config.value.stations.map(() => '');
+
+		let buggyRows = store.value.reduce((prev, roll) => {
+			let buggyInfoRow = [[roll.startTime, '@', roll.team]];
+			let buggyDataRows = roll.buggies[0].buggies.map((d) => [d.number].concat(emptyBuggyCols));
+			roll.buggies.forEach((stationData, idx) => {
+				let first_buggy_time = new Date(stationData.buggies[0].time);
+				stationData.buggies.forEach((buggy, b_idx) => {
+					buggyDataRows[b_idx][idx + 1] = formatTime(
+						new Date(roll.startTime),
+						buggy,
+						stationData.buggies
+					);
+				});
+			});
+			return prev.concat(buggyInfoRow.concat(buggyDataHeaderRow).concat(buggyDataRows));
+		}, []);
+
+		let postData = {
+			values: configRows.concat([[]].concat(buggyRows)),
+			sheetId: config.value.sheetId
+		};
+
+		exportSubmitted = true;
+		try {
+			const response = await fetch('https://buggyapp.kandasamyc.com/updateData', {
+				method: 'POST',
+				body: JSON.stringify(postData)
+			});
+			if (!response.ok) {
+				exportError = true;
+			} else {
+				exportError = false;
+			}
+		} catch (_) {
+			exportError = true;
+		}
+	};
 </script>
 
 <input
@@ -255,7 +323,7 @@
 				: 'row-span-8'}"
 		>
 			{#if currentTab == 2}
-				<DataTab />
+				<DataTab bind:exportError bind:exportSubmitted />
 			{:else if currentTab == 1}
 				<!-- else content here -->
 
@@ -307,7 +375,8 @@
 						: 'btn-secondary'} h-full text-xl">Copy Data To Clipboard</button
 				>
 				<button
-					onclick={writeClipboard}
+					onclick={exportData}
+					class:btn-disabled={!canExport}
 					class="btn {exportSubmitted
 						? exportError
 							? 'btn-error'

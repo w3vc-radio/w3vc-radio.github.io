@@ -1,8 +1,7 @@
 <script>
-	let { name, buggies } = $props();
+	let { name, buggies, startTime } = $props();
 
 	let formatTime = (buggy, idx, buggies) => {
-		let startTime = new Date(buggies[0].time);
 		if (buggy.number == '1' || buggy.number == 'F') {
 			let diff = new Date(buggy.time) - startTime;
 			let seconds = (diff / 1000) % 60;
