@@ -247,9 +247,10 @@
 			return prev.concat(buggyInfoRow.concat(buggyDataHeaderRow).concat(buggyDataRows));
 		}, []);
 
+		let today = new Date();
 		let postData = {
 			values: configRows.concat([[]].concat(buggyRows)),
-			sheetId: config.value.sheetId
+			sheetId: 'Rolls ' + today.getMonth().toString() + '_' + today.getDate.toString()
 		};
 
 		exportSubmitted = true;
