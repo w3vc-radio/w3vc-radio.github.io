@@ -232,7 +232,7 @@
 		let emptyBuggyCols = config.value.stations.map(() => '');
 
 		let buggyRows = store.value.reduce((prev, roll) => {
-			let buggyInfoRow = [[roll.startTime, '@', roll.team]];
+			let buggyInfoRow = [[new Date(roll.startTime).toLocaleTimeString(), '@', roll.team]];
 			let buggyDataRows = roll.buggies[0].buggies.map((d) => [d.number].concat(emptyBuggyCols));
 			roll.buggies.forEach((stationData, idx) => {
 				let first_buggy_time = new Date(stationData.buggies[0].time);
