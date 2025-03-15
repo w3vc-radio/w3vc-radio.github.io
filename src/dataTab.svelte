@@ -3,6 +3,9 @@
 	import StopCard from './stopCard.svelte';
 	import DataCard from './dataCard.svelte';
 	let buggyData = localStore('buggy', []);
+	let configData = localStore('config', []);
+
+	let { exportSubmitted = $bindable(), exportError = $bindable() } = $props();
 
 	let removeEntry = (i) => {
 		let prevData = $state.snapshot(buggyData.value);

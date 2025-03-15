@@ -20,6 +20,8 @@
 	let stationOrder = $state(config.value.stations);
 	let flipHandedness = $state(false);
 	let operators = $state(config.value.operators);
+	let exportPassword = $state(config.value.exportPassword);
+
 	let currentOperatorName = $state('');
 	let currentOperatorCallsign = $state('');
 	let currentOperatorStation = $state('');
@@ -150,6 +152,7 @@
 			config.value.operators = operators;
 			config.value.theme = selectedTheme;
 			config.value.handedness = flipHandedness;
+			config.value.exportPassword = exportPassword;
 			errorMsg = '';
 		} else {
 			errorMsg = 'All stations need primary operator';
@@ -402,6 +405,8 @@
 					<option id={theme}>{theme}</option>
 				{/each}
 			</select>
+			<label class="fieldset-label text-base">Export Password</label>
+			<input type="text" class="input" bind:value={exportPassword} />
 		</fieldset>
 	</div>
 </div>
