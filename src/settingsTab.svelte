@@ -135,7 +135,7 @@
 		});
 	}
 
-	function saveData() {
+	async function saveData() {
 		let allStationsHavePrimaryOperator = true;
 		stationOrder.forEach((s) => {
 			let stationHasPrimaryOperator = false;
@@ -154,6 +154,22 @@
 			config.value.handedness = flipHandedness;
 			config.value.exportPassword = exportPassword;
 			errorMsg = '';
+			let today = new Date();
+			let postData = {
+				sheetId: 'Rolls ' + (today.getMonth() + 1).toString() + '_' + today.getDate().toString()
+			};
+
+			try {
+				const response = await fetch('https://buggyapp.kandasamyc.com/createSheet', {
+					method: 'POST',
+					headers: {
+						'Auth-Code': config.value.exportPassword
+					},
+					body: JSON.stringify(postData)
+				});
+			} catch (_) {
+				console.log('Post error');
+			}
 		} else {
 			errorMsg = 'All stations need primary operator';
 		}
