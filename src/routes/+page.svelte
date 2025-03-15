@@ -249,7 +249,7 @@
 
 		let today = new Date();
 		let postData = {
-			values: configRows.concat([[]].concat(buggyRows)),
+			data: configRows.concat([[]].concat(buggyRows)),
 			sheetId: 'Rolls ' + (today.getMonth() + 1).toString() + '_' + today.getDate().toString()
 		};
 
