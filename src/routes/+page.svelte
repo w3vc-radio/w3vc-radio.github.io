@@ -257,6 +257,9 @@
 		try {
 			const response = await fetch('https://buggyapp.kandasamyc.com/updateData', {
 				method: 'POST',
+				headers: {
+					'Auth-Code': config.value.exportPassword
+				},
 				body: JSON.stringify(postData)
 			});
 			if (!response.ok) {
