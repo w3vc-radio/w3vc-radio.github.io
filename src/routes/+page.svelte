@@ -50,7 +50,6 @@
 		})
 	);
 	let activeRollStopAndPauseNotes = $state([]);
-	$inspect(activeRollStopAndPauseNotes);
 	let stationsDidId = $state(config.value.stations.map(() => false));
 	let shouldID = $state(false);
 	let teams = $derived(config.value.teams);
@@ -59,6 +58,7 @@
 	let undoBtnHeld = $state(false);
 	let stops = $state([]);
 	let teamSelectOpen = $state(false);
+	let stopBtnWasHeld = $state(false);
 	let canExport = $derived(config.value.exportPassword != '');
 
 	let team = $state(config.value.teams.length > 0 ? config.value.teams[0] : 'N/A');
@@ -122,6 +122,7 @@
 			return { name: name, buggies: [], followCarSeen: false };
 		});
 		stationsDidId = config.value.stations.map(() => false);
+		activeRollStopAndPauseNotes = [];
 	};
 
 	async function writeClipboard() {
@@ -165,7 +166,6 @@
 			}
 			pressed = false;
 			currentlyHeldState = false;
-			dispatchHeldState(false);
 		}
 
 		function onMove(activeEvents, event) {
@@ -198,9 +198,18 @@
 		} else {
 			saveDateAndReset(false);
 		}
+		undoBtnHeld = false;
 	};
 
-	let stopBtnHandler = (btnHeld) => {};
+	let stopBtnHandler = (event) => {
+		let newItem = {
+			stopOrPause: !stopBtnHeld,
+			time: new Date().toUTCString(),
+			info: ''
+		};
+		activeRollStopAndPauseNotes.push(newItem);
+		stopModal.showModal();
+	};
 
 	let formatTime = (startTime, buggy, buggies) => {
 		if (buggy.number == '1' || buggy.number == 'F') {
@@ -244,6 +253,15 @@
 					);
 				});
 			});
+			roll.notes.forEach((note, idx) => {
+				if (idx == 0) {
+					buggyDataRows[0].push('Notes');
+				}
+				buggyDataRows[0].push(
+					(note.stopOrPause ? 'Stop' : 'Pause') + ' at ' + new Date(note.time).toLocaleString()
+				);
+				buggyDataRows[1].push(note.info);
+			});
 			return prev.concat(buggyInfoRow.concat(buggyDataHeaderRow).concat(buggyDataRows));
 		}, []);
 
@@ -253,7 +271,6 @@
 			sheetId: 'Rolls ' + (today.getMonth() + 1).toString() + '_' + today.getDate().toString()
 		};
 
-		exportSubmitted = true;
 		try {
 			const response = await fetch('https://buggyapp.kandasamyc.com/updateData', {
 				method: 'POST',
@@ -263,13 +280,19 @@
 				body: JSON.stringify(postData)
 			});
 			if (!response.ok) {
+				exportSubmitted = true;
 				exportError = true;
 			} else {
+				exportSubmitted = true;
 				exportError = false;
 			}
 		} catch (_) {
+			exportSubmitted = true;
 			exportError = true;
 		}
+		setTimeout(() => {
+			exportSubmitted = false;
+		}, 3000);
 	};
 </script>
 
@@ -416,15 +439,8 @@
 					class:btn-warning={currentRoundState > 0 && stopBtnHeld}
 					class:btn-disabled={currentRoundState == 0}
 					use:tapOrPress={{ timeframe: 300, handler: stopBtnHandler }}
-					ontapOrPress={(event) => {
-						stopBtnHeld = event.detail.newState;
-						let newItem = {
-							stopOrPause: !stopBtnHeld,
-							time: new Date().toUTCString(),
-							info: ''
-						};
-						activeRollStopAndPauseNotes.push(newItem);
-						stopModal.showModal();
+					ontapOrPress={(wasHeld) => {
+						stopBtnHeld = wasHeld;
 					}}>Record {!stopBtnHeld ? 'Stop' : 'Pause'}</button
 				>
 				<!-- else content here -->
@@ -464,7 +480,12 @@
 						<input type="text" class="input" bind:value={note.info} />
 					{/each}
 					<form method="dialog">
-						<button class="btn btn-secondary btn-block">Close</button>
+						<button
+							class="btn btn-secondary btn-block"
+							onclick={() => {
+								stopBtnHeld = false;
+							}}>Close</button
+						>
 					</form>
 				</fieldset>
 			</div>
