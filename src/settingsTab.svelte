@@ -1,6 +1,7 @@
 <script>
 	import { localStore } from './useLocalStorage.svelte';
 	let { config, selectedTheme = $bindable() } = $props();
+	let buggyData = localStore('buggy', []);
 	import Fa from 'svelte-fa';
 	import {
 		faArrowUp,
@@ -134,6 +135,20 @@
 			}
 		});
 	}
+
+	let clearData = () => {
+		config.value = {
+			stations: [],
+			teams: [],
+			operators: [],
+			theme: 'dark',
+			handedness: 'right',
+			nextIDRoundTime: new Date().toUTCString(),
+			startTime: new Date().toUTCString()
+		};
+
+		buggyData.value = [];
+	};
 
 	async function saveData() {
 		let allStationsHavePrimaryOperator = true;
@@ -371,6 +386,7 @@
 							{#each stationOrder as station}
 								<option id={station}>{station}</option>
 							{/each}
+							<option>Rover</option>
 						</select>
 						<label class="fieldset-label text-base">
 							Should be primary?
@@ -424,5 +440,8 @@
 			<label class="fieldset-label text-base">Export Password</label>
 			<input type="text" class="input" bind:value={exportPassword} />
 		</fieldset>
+		<button onclick={() => clearData()} class="btn btn-error btn-block mt-7 w-full text-xl"
+			>Clear ALL Data</button
+		>
 	</div>
 </div>
