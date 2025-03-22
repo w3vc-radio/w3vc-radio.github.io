@@ -37,6 +37,8 @@
 	let undoList = $state([]);
 	let nextIDRoundTime = $derived(new Date(config.value.nextIDRoundTime));
 	let startTime = $derived(new Date(config.value.startTime));
+	let startTimerIntervalId = 0;
+	let timeSinceRoundStart = $state(0);
 	let idHidden = $state(true);
 	let showData = $state(false);
 	let confirmClear = $state(false);
@@ -78,25 +80,22 @@
 		};
 	};
 
+	let startTimer = () => {
+		const intervalId = setInterval(() => {
+			timeSinceRoundStart = new Date() - startTime;
+		}, 1000);
+
+		startTimerIntervalId = intervalId;
+	};
+
 	let startIDRound = () => {
 		let currentTime = new Date();
 		config.value.nextIDRoundTime = new Date(currentTime.getTime() + 10 * 60000).toUTCString();
 		idHidden = !idHidden;
 	};
 
-	onMount(() => {
-		const intervalId = setInterval(() => {
-			let currentTime = new Date();
-			if ((currentTime - nextIDRoundTime) / 60000 > 10) {
-				shouldID = true;
-				idHidden = false;
-			}
-		}, 30000); // 60000 milliseconds = 1 minute
-
-		return () => clearInterval(intervalId);
-	});
-
 	let saveDateAndReset = (shouldSave) => {
+		clearInterval(startTimerIntervalId);
 		let data = {
 			buggies: $state.snapshot(activeRollInfo),
 			team: $state.snapshot(team),
@@ -104,6 +103,11 @@
 			notes: $state.snapshot(activeRollStopAndPauseNotes),
 			didId: false
 		};
+
+		data.operators = config.value.stations.map(
+			(station) =>
+				config.value.operators.find((op) => op.station == station && op.isPrimary).callsign
+		);
 
 		stationsDidId.forEach((t) => {
 			if (t) {
@@ -214,14 +218,14 @@
 	let formatTime = (startTime, buggy, buggies) => {
 		if (buggy.number == '1' || buggy.number == 'F') {
 			let diff = new Date(buggy.time) - startTime;
-			let seconds = (diff / 1000) % 60;
-			let minutes = (diff / 1000 - seconds) / 60;
-			return `@${minutes}:${String(Math.ceil(seconds)).padStart(2, '0')}`;
+			let seconds = Math.ceil(diff / 1000) % 60;
+			let minutes = Math.floor(Math.max(diff / 1000 - seconds, 0)) / 60;
+			return `@${minutes}:${String(seconds).padStart(2, '0')}`;
 		} else {
 			let prevBuggy = buggies[buggies.indexOf(buggy) - 1];
 			let diff = new Date(buggy.time) - new Date(prevBuggy.time);
 			let seconds = (diff / 1000) % 60;
-			let minutes = (diff / 1000 - seconds) / 60;
+			let minutes = Math.max(Math.floor(diff / 1000 - seconds), 0) / 60;
 			return `+${minutes}:${String(Math.floor(seconds)).padStart(2, '0')}`;
 		}
 	};
@@ -242,6 +246,7 @@
 
 		let buggyRows = store.value.reduce((prev, roll) => {
 			let buggyInfoRow = [[new Date(roll.startTime).toLocaleTimeString(), '@', roll.team]];
+			let operatorRow = ['Operators'].concat(roll.operators);
 			let buggyDataRows = roll.buggies[0].buggies.map((d) => [d.number].concat(emptyBuggyCols));
 			roll.buggies.forEach((stationData, idx) => {
 				let first_buggy_time = new Date(stationData.buggies[0].time);
@@ -262,7 +267,9 @@
 				);
 				buggyDataRows[1].push(note.info);
 			});
-			return prev.concat(buggyInfoRow.concat(buggyDataHeaderRow).concat(buggyDataRows));
+			return prev.concat(
+				buggyInfoRow.concat(operatorRow).concat(buggyDataHeaderRow).concat(buggyDataRows)
+			);
 		}, []);
 
 		let today = new Date();
@@ -294,6 +301,12 @@
 			exportSubmitted = false;
 		}, 3000);
 	};
+
+	let formatMinutesAndSeconds = (diff) => {
+		let seconds = Math.ceil(diff / 1000) % 60;
+		let minutes = Math.max(0, Math.floor(diff / 1000 - seconds)) / 60;
+		return `${minutes}:${String(seconds).padStart(2, '0')}`;
+	};
 </script>
 
 <input
@@ -316,20 +329,8 @@
 					<option class="p-1 text-sm" value={t}>{t} </option>
 				{/each}
 			</select>
-			<p class="col-span-1 col-start-2 row-span-2 row-start-1 text-center text-lg">
-				Start At: {startTime.getHours().toString().padStart(2, '0')}:{startTime
-					.getMinutes()
-					.toString()
-					.padStart(2, '0')}
-			</p>
-			<p
-				class="col-span-1 col-start-2 row-span-2 row-start-3 rounded-md py-0.5 text-center text-lg"
-				class:bg-primary={shouldID}
-			>
-				Next ID: {nextIDRoundTime.getHours().toString().padStart(2, '0')}:{nextIDRoundTime
-					.getMinutes()
-					.toString()
-					.padStart(2, '0')}
+			<p class="col-span-1 col-start-2 row-span-2 row-start-2 text-center text-xl">
+				Round Timer: {formatMinutesAndSeconds(timeSinceRoundStart)}
 			</p>
 			<div class="col-span-1 col-start-3 row-span-4 mr-2">
 				<button
@@ -450,6 +451,7 @@
 							saveDateAndReset(true);
 						} else {
 							config.value.startTime = new Date().toUTCString();
+							startTimer();
 						}
 						currentRoundState = currentRoundState == 0 ? 1 : 0;
 					}}

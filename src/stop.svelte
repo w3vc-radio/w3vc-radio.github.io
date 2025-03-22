@@ -52,14 +52,14 @@
 	let formatTime = (buggy) => {
 		if (buggy.number == '1' || buggy.number == 'F') {
 			let diff = buggy.time - startTime;
-			let seconds = (diff / 1000) % 60;
-			let minutes = (diff / 1000 - seconds) / 60;
-			return `@${minutes}:${String(Math.ceil(seconds)).padStart(2, '0')}`;
+			let seconds = Math.ceil(diff / 1000) % 60;
+			let minutes = Math.max(Math.floor(diff / 1000 - seconds), 0) / 60;
+			return `@${minutes}:${String(seconds).padStart(2, '0')}`;
 		} else {
 			let prevBuggy = buggies[buggies.indexOf(buggy) - 1];
 			let diff = buggy.time - prevBuggy.time;
-			let seconds = (diff / 1000) % 60;
-			let minutes = (diff / 1000 - seconds) / 60;
+			let seconds = Math.floor(diff / 1000) % 60;
+			let minutes = Math.max(Math.floor(diff / 1000 - seconds), 0) / 60;
 			return `+${minutes}:${String(Math.floor(seconds)).padStart(2, '0')}`;
 		}
 	};
