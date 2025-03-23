@@ -26,7 +26,7 @@
 		teams: [],
 		operators: [],
 		theme: 'dark',
-		handedness: 'right',
+		showImages: false,
 		nextIDRoundTime: new Date().toUTCString(),
 		startTime: new Date().toUTCString()
 	});
@@ -96,6 +96,7 @@
 
 	let saveDateAndReset = (shouldSave) => {
 		clearInterval(startTimerIntervalId);
+		timeSinceRoundStart = 0;
 		let data = {
 			buggies: $state.snapshot(activeRollInfo),
 			team: $state.snapshot(team),
@@ -219,13 +220,13 @@
 		if (buggy.number == '1' || buggy.number == 'F') {
 			let diff = new Date(buggy.time) - startTime;
 			let seconds = Math.ceil(diff / 1000) % 60;
-			let minutes = Math.floor(Math.max(diff / 1000 - seconds, 0)) / 60;
+			let minutes = Math.floor(Math.max(diff / 1000 - seconds, 0) / 60);
 			return `@${minutes}:${String(seconds).padStart(2, '0')}`;
 		} else {
 			let prevBuggy = buggies[buggies.indexOf(buggy) - 1];
 			let diff = new Date(buggy.time) - new Date(prevBuggy.time);
 			let seconds = (diff / 1000) % 60;
-			let minutes = Math.max(Math.floor(diff / 1000 - seconds), 0) / 60;
+			let minutes = Math.floor(Math.max(diff / 1000 - seconds, 0) / 60);
 			return `+${minutes}:${String(Math.floor(seconds)).padStart(2, '0')}`;
 		}
 	};
@@ -304,7 +305,7 @@
 
 	let formatMinutesAndSeconds = (diff) => {
 		let seconds = Math.ceil(diff / 1000) % 60;
-		let minutes = Math.max(0, Math.floor(diff / 1000 - seconds)) / 60;
+		let minutes = Math.floor(Math.max(diff / 1000 - seconds, 0) / 60);
 		return `${minutes}:${String(seconds).padStart(2, '0')}`;
 	};
 </script>

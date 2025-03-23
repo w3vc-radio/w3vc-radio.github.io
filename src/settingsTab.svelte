@@ -19,7 +19,7 @@
 	let teamOrder = $state(config.value.teams);
 	let selectedStations = $state(config.value.stations);
 	let stationOrder = $state(config.value.stations);
-	let flipHandedness = $state(false);
+	let showImagesSelected = $state(config.value.showImages);
 	let operators = $state(config.value.operators);
 	let exportPassword = $state(config.value.exportPassword);
 
@@ -142,7 +142,7 @@
 			teams: [],
 			operators: [],
 			theme: 'dark',
-			handedness: 'right',
+			showImages: false,
 			nextIDRoundTime: new Date().toUTCString(),
 			startTime: new Date().toUTCString()
 		};
@@ -166,7 +166,7 @@
 			config.value.stations = stationOrder;
 			config.value.operators = operators;
 			config.value.theme = selectedTheme;
-			config.value.handedness = flipHandedness;
+			config.value.showImages = showImagesSelected;
 			config.value.exportPassword = exportPassword;
 			errorMsg = '';
 			let today = new Date();
@@ -423,10 +423,10 @@
 		<fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-full border p-4">
 			<legend class="fieldset-legend text-lg">Misc</legend>
 			<label class="fieldset-label text-lg">
-				Flip Handedness
+				Show Images
 				<input
 					type="checkbox"
-					bind:checked={flipHandedness}
+					bind:checked={showImagesSelected}
 					class="toggle toggle-xl bg-transparent! bg-none"
 				/>
 			</label>
