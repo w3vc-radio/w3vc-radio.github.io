@@ -67,7 +67,7 @@
 		config.value.operators = config.value.operators.map((op) => {
 			if (op.callsign == firstOp.callsign) {
 				return firstOp;
-			} else if ((op.callsign = secondOp.callsign)) {
+			} else if (op.callsign == secondOp.callsign) {
 				return secondOp;
 			}
 			return op;
