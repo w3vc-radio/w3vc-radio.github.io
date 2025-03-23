@@ -13,8 +13,11 @@
 	<div class="tooltip" class:tooltip-open={isHovered}>
 		<div class="tooltip-content">{buggy.buggyTitle}</div>
 		<div class="avatar">
-			<div class="w-15 rounded">
-				<img alt="" src={'https://cmubuggy.org/api/buggyimg/' + buggy.buggyId + '?size=Th'} />
+			<div class="w-15 rounded text-lg">
+				<img
+					alt={buggy.buggyTitle}
+					src={'https://cmubuggy.org/api/buggyimg/' + buggy.buggyId + '?size=Th'}
+				/>
 			</div>
 		</div>
 	</div>
