@@ -250,7 +250,7 @@
 			let operatorRow = ['Operators'].concat(roll.operators);
 			let buggyDataRows = roll.buggies[0].buggies.map((d) => [d.number].concat(emptyBuggyCols));
 			roll.buggies.forEach((stationData, idx) => {
-				if (stationData.length > 0) {
+				if (stationData.buggies.length > 0) {
 					let first_buggy_time = new Date(stationData.buggies[0].time);
 					stationData.buggies.forEach((buggy, b_idx) => {
 						buggyDataRows[b_idx][idx + 1] = formatTime(
