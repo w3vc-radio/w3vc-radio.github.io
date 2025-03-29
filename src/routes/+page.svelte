@@ -250,14 +250,16 @@
 			let operatorRow = ['Operators'].concat(roll.operators);
 			let buggyDataRows = roll.buggies[0].buggies.map((d) => [d.number].concat(emptyBuggyCols));
 			roll.buggies.forEach((stationData, idx) => {
-				let first_buggy_time = new Date(stationData.buggies[0].time);
-				stationData.buggies.forEach((buggy, b_idx) => {
-					buggyDataRows[b_idx][idx + 1] = formatTime(
-						new Date(roll.startTime),
-						buggy,
-						stationData.buggies
-					);
-				});
+				if (stationData.length > 0) {
+					let first_buggy_time = new Date(stationData.buggies[0].time);
+					stationData.buggies.forEach((buggy, b_idx) => {
+						buggyDataRows[b_idx][idx + 1] = formatTime(
+							new Date(roll.startTime),
+							buggy,
+							stationData.buggies
+						);
+					});
+				}
 			});
 			roll.notes.forEach((note, idx) => {
 				if (idx == 0) {
@@ -269,7 +271,7 @@
 				buggyDataRows[1].push(note.info);
 			});
 			return prev.concat(
-				buggyInfoRow.concat(operatorRow).concat(buggyDataHeaderRow).concat(buggyDataRows)
+				buggyInfoRow.concat([operatorRow]).concat(buggyDataHeaderRow).concat(buggyDataRows)
 			);
 		}, []);
 
